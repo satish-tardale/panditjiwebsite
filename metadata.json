@@ -1,0 +1,7 @@
+{
+  "name": "Book My Pandit",
+  "description": "Premium pandit booking service in Pune for sacred rituals and pujas.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

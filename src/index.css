@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FF6B00;
+  --color-secondary: #7A1E1E;
+  --color-accent: #D4AF37;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-slate-900 font-sans;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-serif;
+  }
+}
+
+.premium-card {
+  @apply bg-white rounded-2xl shadow-md border border-black/5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F2D06B 50%, #D4AF37 100%);
+}
+
+.saffron-gradient {
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8E3C 100%);
+}
+
+.glass-morphism {
+  @apply bg-white/80 backdrop-blur-md border border-white/20;
+}
