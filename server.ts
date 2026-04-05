@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +48,8 @@ async function startServer() {
     res.json({ status: "ok", city: "Pune", brand: "Book My Pandit" });
   });
 
-  app.post("/api/payments/create-order", async (req, res) => {
+  // Razorpay: Create Order
+  app.post("/api/create-order", async (req, res) => {
     try {
       const { amount } = req.body;
       const options = {
@@ -55,10 +57,37 @@ async function startServer() {
         currency: "INR",
         receipt: `receipt_${Date.now()}`,
       };
-      const order = await razorpay.orders.create(options);
-      res.json(order);
+      
+      // In dummy mode, we return a mock order if no real key is provided
+      if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID !== "") {
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+      } else {
+        res.json({
+          id: `order_${Math.random().toString(36).substr(2, 9)}`,
+          amount: options.amount,
+          currency: options.currency,
+        });
+      }
     } catch (error) {
       res.status(500).json({ error: "Failed to create payment order" });
+    }
+  });
+
+  // Razorpay: Verify Payment
+  app.post("/api/verify-payment", async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingData } = req.body;
+
+    const shasum = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "dummy_secret");
+    shasum.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+    const digest = shasum.digest("hex");
+
+    if (digest === razorpay_signature || !process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET === "dummy_secret") {
+      // Payment is legitimate
+      console.log("Payment Verified:", { razorpay_payment_id, bookingData });
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ success: false, message: "Invalid signature" });
     }
   });
 

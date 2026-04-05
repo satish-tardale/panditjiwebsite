@@ -12,8 +12,13 @@ import {
   Shield,
   Clock,
   CreditCard,
+  ChevronRight,
   Volume2,
-  VolumeX
+  VolumeX,
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube
 } from 'lucide-react';
 import Hero3D from './components/Hero3D';
 
@@ -38,32 +43,26 @@ interface Pandit {
   verified: boolean;
 }
 
-// --- Mock Data ---
-const PUJAS: Puja[] = [
-  { id: '1', title: 'Griha Pravesh', description: 'Sacred housewarming ritual to bring peace and prosperity.', duration: '3-4 hrs', price: 5100, image: 'https://picsum.photos/seed/home/400/300', category: 'Home' },
-  { id: '2', title: 'Satyanarayan Puja', description: 'Thanksgiving ritual for success and well-being.', duration: '2 hrs', price: 3100, image: 'https://picsum.photos/seed/puja/400/300', category: 'Prosperity' },
-  { id: '3', title: 'Ganesh Puja', description: 'Invocation of Lord Ganesha for new beginnings.', duration: '1.5 hrs', price: 2100, image: 'https://picsum.photos/seed/ganesh/400/300', category: 'Beginnings' },
-  { id: '4', title: 'Navagraha Shanti', description: 'Pacifying the nine planets for harmony.', duration: '3 hrs', price: 4500, image: 'https://picsum.photos/seed/stars/400/300', category: 'Planetary' },
-];
-
-const PANDITS: Pandit[] = [
-  { id: '1', name: 'Pandit Rajesh Sharma', experience: 15, rating: 4.9, languages: ['Marathi', 'Hindi', 'Sanskrit'], image: 'https://picsum.photos/seed/p1/200/200', verified: true },
-  { id: '2', name: 'Pandit Vivek Kulkarni', experience: 20, rating: 5.0, languages: ['Marathi', 'Sanskrit'], image: 'https://picsum.photos/seed/p2/200/200', verified: true },
-  { id: '3', name: 'Pandit Amit Joshi', experience: 12, rating: 4.8, languages: ['Hindi', 'English', 'Marathi'], image: 'https://picsum.photos/seed/p3/200/200', verified: true },
-];
-
 // --- Components ---
 
 const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => {
   const { user } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const languages: { code: 'en' | 'mr' | 'hi'; label: string }[] = [
+    { code: 'en', label: 'English' },
+    { code: 'mr', label: 'मराठी' },
+    { code: 'hi', label: 'हिन्दी' }
+  ];
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-6'}`}>
@@ -73,18 +72,60 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => {
           <span className={`text-2xl font-serif font-bold ${isScrolled ? 'text-secondary' : 'text-white'}`}>Book My Pandit</span>
         </div>
         
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           {['Home', 'Pujas', 'Pandits', 'About', 'Contact'].map((item) => (
             <a key={item} href={`#${item.toLowerCase()}`} className={`font-medium hover:text-primary transition-colors ${isScrolled ? 'text-slate-700' : 'text-white/90'}`}>
-              {item}
+              {t(`nav.${item.toLowerCase()}`)}
             </a>
           ))}
-          <button 
-            onClick={onAdminClick}
-            className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-          >
-            Admin Panel
-          </button>
+          
+          <div className="flex items-center gap-3 border-l border-white/20 pl-6">
+            {/* Language Switcher */}
+            <div className="relative">
+              <button 
+                onClick={() => setIsLangOpen(!isLangOpen)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${isScrolled ? 'border-slate-200 text-slate-700' : 'border-white/20 text-white'}`}
+              >
+                <span className="text-xs font-bold uppercase">{language}</span>
+                <ChevronRight size={14} className={`transition-transform ${isLangOpen ? 'rotate-90' : ''}`} />
+              </button>
+              
+              <AnimatePresence>
+                {isLangOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden"
+                  >
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang.code);
+                          setIsLangOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition-colors ${language === lang.code ? 'text-primary font-bold' : 'text-slate-600'}`}
+                      >
+                        {lang.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <button 
+              onClick={onAdminClick}
+              className="bg-secondary text-white px-5 py-2 rounded-full font-semibold hover:bg-secondary/90 transition-all shadow-lg text-sm"
+            >
+              {t('nav.admin')}
+            </button>
+            
+            <button className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+              {t('nav.book')}
+            </button>
+          </div>
         </div>
 
         <button className="md:hidden text-primary" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -95,60 +136,88 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => {
   );
 };
 
-const Footer = () => (
-  <footer className="bg-secondary text-white py-16">
-    <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-      <div className="col-span-1 md:col-span-2">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">ॐ</div>
-          <span className="text-2xl font-serif font-bold">Book My Pandit</span>
+const Footer = () => {
+  const { t } = useLanguage();
+  return (
+    <footer className="bg-secondary text-white py-16">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="col-span-1 md:col-span-2">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">ॐ</div>
+            <span className="text-2xl font-serif font-bold">Book My Pandit</span>
+          </div>
+          <p className="text-white/70 max-w-md mb-8">
+            {t('footer.desc')}
+          </p>
+          <div className="flex gap-4">
+            <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-all duration-300 group">
+              <Facebook size={20} className="text-white/70 group-hover:text-white" />
+            </a>
+            <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-all duration-300 group">
+              <Instagram size={20} className="text-white/70 group-hover:text-white" />
+            </a>
+            <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-all duration-300 group">
+              <Twitter size={20} className="text-white/70 group-hover:text-white" />
+            </a>
+            <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-all duration-300 group">
+              <Youtube size={20} className="text-white/70 group-hover:text-white" />
+            </a>
+          </div>
         </div>
-        <p className="text-white/70 max-w-md mb-8">
-          Bringing sacred rituals to your doorstep with verified pandits. Experience the divine with ease and authenticity.
-          A flagship project of Admayra Infotech.
-        </p>
-        <div className="flex gap-4">
-          <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">FB</a>
-          <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">IG</a>
-          <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">TW</a>
+        
+        <div>
+          <h4 className="text-accent font-bold mb-6 uppercase tracking-wider">{t('footer.links')}</h4>
+          <ul className="space-y-4 text-white/70">
+            <li><a href="#home" className="hover:text-white transition-colors">{t('nav.home')}</a></li>
+            <li><a href="#pujas" className="hover:text-white transition-colors">{t('nav.pujas')}</a></li>
+            <li><a href="#pandits" className="hover:text-white transition-colors">{t('nav.pandits')}</a></li>
+            <li><a href="#about" className="hover:text-white transition-colors">{t('nav.about')}</a></li>
+            <li><a href="#contact" className="hover:text-white transition-colors">{t('nav.contact')}</a></li>
+          </ul>
         </div>
-      </div>
-      
-      <div>
-        <h4 className="text-accent font-bold mb-6 uppercase tracking-wider">Quick Links</h4>
-        <ul className="space-y-4 text-white/70">
-          <li><a href="#" className="hover:text-white transition-colors">Griha Pravesh</a></li>
-          <li><a href="#" className="hover:text-white transition-colors">Satyanarayan Puja</a></li>
-          <li><a href="#" className="hover:text-white transition-colors">Wedding Services</a></li>
-          <li><a href="#" className="hover:text-white transition-colors">Pandit Registration</a></li>
-        </ul>
-      </div>
 
-      <div>
-        <h4 className="text-accent font-bold mb-6 uppercase tracking-wider">Contact Us</h4>
-        <ul className="space-y-4 text-white/70">
-          <li className="flex items-center gap-3"><Phone size={18} /> +91 95235 11286</li>
-          <li className="flex items-center gap-3"><MapPin size={18} /> Pune, Maharashtra</li>
-          <li className="mt-6">
-            <span className="block text-xs text-white/40 mb-2">Powered by</span>
-            <span className="font-bold text-white">Admayra Infotech</span>
-          </li>
-        </ul>
+        <div>
+          <h4 className="text-accent font-bold mb-6 uppercase tracking-wider">{t('footer.contact')}</h4>
+          <ul className="space-y-4 text-white/70">
+            <li className="flex items-center gap-3"><Phone size={18} /> +91 95235 11286</li>
+            <li className="flex items-center gap-3"><MapPin size={18} /> {t('hero.city')}</li>
+            <li className="mt-6">
+              <span className="block text-xs text-white/40 mb-2">{t('footer.powered')}</span>
+              <span className="font-bold text-white">Admayra Infotech</span>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
-    <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/10 text-center text-white/40 text-sm">
-      © 2026 Book My Pandit. All sacred rights reserved.
-    </div>
-  </footer>
-);
+      <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/10 text-center text-white/40 text-sm">
+        {t('footer.rights')}
+      </div>
+    </footer>
+  );
+};
 
 import BookingModal from './components/BookingModal';
+import DetailedPujas from './components/DetailedPujas';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AdminDashboard from './pages/AdminDashboard';
 
 function MainContent() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
+
+  const PUJAS: Puja[] = [
+    { id: '1', title: t('pujas.items.1.title'), description: t('pujas.items.1.desc'), duration: '3-4 hrs', price: 5100, image: 'https://picsum.photos/seed/home/400/300', category: t('pujas.cat.home') },
+    { id: '2', title: t('pujas.items.2.title'), description: t('pujas.items.2.desc'), duration: '2 hrs', price: 3100, image: 'https://picsum.photos/seed/puja/400/300', category: t('pujas.cat.prosperity') },
+    { id: '3', title: t('pujas.items.3.title'), description: t('pujas.items.3.desc'), duration: '1.5 hrs', price: 2100, image: 'https://picsum.photos/seed/ganesh/400/300', category: t('pujas.cat.beginnings') },
+    { id: '4', title: t('pujas.items.4.title'), description: t('pujas.items.4.desc'), duration: '3 hrs', price: 4500, image: 'https://picsum.photos/seed/stars/400/300', category: t('pujas.cat.planetary') },
+  ];
+
+  const PANDITS: Pandit[] = [
+    { id: '1', name: t('pandits.items.1.name'), experience: 15, rating: 4.9, languages: [t('lang.mr'), t('lang.hi'), t('lang.sa')], image: 'https://picsum.photos/seed/p1/200/200', verified: true },
+    { id: '2', name: t('pandits.items.2.name'), experience: 20, rating: 5.0, languages: [t('lang.mr'), t('lang.sa')], image: 'https://picsum.photos/seed/p2/200/200', verified: true },
+    { id: '3', name: t('pandits.items.3.name'), experience: 12, rating: 4.8, languages: [t('lang.hi'), t('lang.en'), t('lang.mr')], image: 'https://picsum.photos/seed/p3/200/200', verified: true },
+  ];
   const [isAudioOn, setIsAudioOn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedPuja, setSelectedPuja] = useState<Puja | null>(null);
@@ -193,7 +262,7 @@ function MainContent() {
             className="h-full w-1/2 bg-primary"
           />
         </motion.div>
-        <p className="text-white/50 mt-4 font-serif italic">Preparing your sacred experience...</p>
+        <p className="text-white/50 mt-4 font-serif italic">{t('loading')}</p>
       </div>
     );
   }
@@ -213,26 +282,25 @@ function MainContent() {
             transition={{ duration: 1, delay: 0.5 }}
           >
             <span className="inline-block px-4 py-1 bg-primary/20 text-primary border border-primary/30 rounded-full text-sm font-bold mb-6 uppercase tracking-widest">
-              Launch City: Pune
+              {t('hero.city')}
             </span>
             <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 leading-tight">
-              Book Verified Pandits for <br />
-              <span className="text-accent italic">Every Sacred Occasion</span>
+              {t('hero.title')} <br />
+              <span className="text-accent italic">{t('hero.subtitle')}</span>
             </h1>
             <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
-              Experience authentic rituals with Pune's most trusted spiritual platform. 
-              Verified Pandits. Transparent Pricing. Divine Peace.
+              {t('hero.desc')}
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 flex items-center justify-center gap-2">
-                Book a Puja Now <ArrowRight size={20} />
+                {t('hero.cta.book')} <ArrowRight size={20} />
               </button>
               <button 
                 onClick={openWhatsApp}
                 className="w-full sm:w-auto px-10 py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-full font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2"
               >
-                <Phone size={20} className="text-green-400" /> Chat on WhatsApp
+                <Phone size={20} className="text-green-400" /> {t('hero.cta.whatsapp')}
               </button>
             </div>
           </motion.div>
@@ -251,10 +319,10 @@ function MainContent() {
       <section className="py-12 bg-slate-50 border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-8 md:gap-16">
           {[
-            { icon: Shield, label: "Verified Pandits" },
-            { icon: CreditCard, label: "Transparent Pricing" },
-            { icon: CheckCircle, label: "Secure Payment" },
-            { icon: Clock, label: "On-Time Guarantee" }
+            { icon: Shield, label: t('trust.verified') },
+            { icon: CreditCard, label: t('trust.pricing') },
+            { icon: CheckCircle, label: t('trust.payment') },
+            { icon: Clock, label: t('trust.guarantee') }
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3 text-slate-600 font-medium">
               <item.icon className="text-primary" size={24} />
@@ -267,9 +335,9 @@ function MainContent() {
       {/* Popular Pujas */}
       <section className="py-24 max-w-7xl mx-auto px-6" id="pujas">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif font-bold text-secondary mb-4">Popular Pujas</h2>
+          <h2 className="text-4xl font-serif font-bold text-secondary mb-4">{t('pujas.title')}</h2>
           <div className="w-24 h-1 bg-primary mx-auto mb-6 rounded-full" />
-          <p className="text-slate-500 max-w-2xl mx-auto">Select from our range of authentic Vedic rituals performed by experienced pandits.</p>
+          <p className="text-slate-500 max-w-2xl mx-auto">{t('pujas.desc')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -298,13 +366,15 @@ function MainContent() {
                   onClick={() => handleBookClick(puja)}
                   className="w-full mt-6 py-3 bg-secondary text-white rounded-xl font-bold hover:bg-secondary/90 transition-all"
                 >
-                  Book Now
+                  {t('pujas.bookNow')}
                 </button>
               </div>
             </motion.div>
           ))}
         </div>
       </section>
+
+      <DetailedPujas onBook={handleBookClick} />
 
       <AnimatePresence>
         {isBookingOpen && selectedPuja && (
@@ -321,16 +391,16 @@ function MainContent() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -mr-48 -mt-48" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-20">
-            <h2 className="text-4xl font-serif font-bold mb-4">Sacred Rituals. Simplified.</h2>
-            <p className="text-white/60">Book your puja in 4 simple steps</p>
+            <h2 className="text-4xl font-serif font-bold mb-4">{t('how.title')}</h2>
+            <p className="text-white/60">{t('how.desc')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { step: "01", title: "Select Puja", desc: "Choose from 50+ Vedic rituals" },
-              { step: "02", title: "Pick Area", desc: "Available across all Pune areas" },
-              { step: "03", title: "Choose Pandit", desc: "Select your preferred verified pandit" },
-              { step: "04", title: "Divine Peace", desc: "Confirm booking & pay securely" }
+              { step: "01", title: t('how.step1.title'), desc: t('how.step1.desc') },
+              { step: "02", title: t('how.step2.title'), desc: t('how.step2.desc') },
+              { step: "03", title: t('how.step3.title'), desc: t('how.step3.desc') },
+              { step: "04", title: t('how.step4.title'), desc: t('how.step4.desc') }
             ].map((item, i) => (
               <div key={i} className="relative p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
                 <span className="text-5xl font-serif font-bold text-primary/30 absolute top-4 right-6">{item.step}</span>
@@ -346,11 +416,11 @@ function MainContent() {
       <section className="py-24 max-w-7xl mx-auto px-6" id="pandits">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div>
-            <h2 className="text-4xl font-serif font-bold text-secondary mb-4">Our Verified Pandits</h2>
-            <p className="text-slate-500">Highly experienced and knowledgeable Vedic scholars.</p>
+            <h2 className="text-4xl font-serif font-bold text-secondary mb-4">{t('pandits.title')}</h2>
+            <p className="text-slate-500">{t('pandits.desc')}</p>
           </div>
           <button className="text-primary font-bold flex items-center gap-2 hover:gap-3 transition-all">
-            View All Pandits <ArrowRight size={18} />
+            {t('pandits.viewAll')} <ArrowRight size={18} />
           </button>
         </div>
 
@@ -377,7 +447,7 @@ function MainContent() {
                 ))}
               </div>
               <button className="w-full py-3 border border-secondary text-secondary rounded-xl font-bold hover:bg-secondary hover:text-white transition-all">
-                View Profile
+                {t('pandits.viewProfile')}
               </button>
             </div>
           ))}
@@ -388,19 +458,19 @@ function MainContent() {
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto saffron-gradient rounded-3xl p-12 text-center text-white relative overflow-hidden shadow-2xl shadow-primary/20">
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
-          <h2 className="text-4xl font-serif font-bold mb-6 relative z-10">Ready for a Divine Experience?</h2>
+          <h2 className="text-4xl font-serif font-bold mb-6 relative z-10">{t('cta.title')}</h2>
           <p className="text-white/90 text-lg mb-10 max-w-xl mx-auto relative z-10">
-            Join thousands of happy families in Pune who trust Book My Pandit for their sacred rituals.
+            {t('cta.desc')}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
             <button className="px-10 py-4 bg-white text-primary rounded-full font-bold text-lg hover:shadow-xl transition-all">
-              Book Your Puja Now
+              {t('cta.book')}
             </button>
             <button 
               onClick={openWhatsApp}
               className="px-10 py-4 bg-secondary text-white rounded-full font-bold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
             >
-              <Phone size={20} /> WhatsApp Inquiry
+              <Phone size={20} /> {t('cta.whatsapp')}
             </button>
           </div>
         </div>
@@ -417,7 +487,7 @@ function MainContent() {
       >
         <Phone size={32} />
         <span className="absolute right-full mr-4 bg-white text-slate-800 px-4 py-2 rounded-lg shadow-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          Chat with us!
+          {t('whatsapp.tooltip')}
         </span>
       </motion.button>
     </div>
@@ -427,7 +497,9 @@ function MainContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <MainContent />
+      <LanguageProvider>
+        <MainContent />
+      </LanguageProvider>
     </AuthProvider>
   );
 }
